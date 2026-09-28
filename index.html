@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>J'aime AgriVoice — Contributeur Vocal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="assets/logo.png" />
+  <link rel="stylesheet" href="css/custom.css?v=2.6" />
+  <style>
+    /* Layout desktop */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 1.25rem;
+      padding: 1.5rem 0 2rem;
+    }
+    .sidebar { display: flex; flex-direction: column; gap: .75rem; }
+    .main-col { display: flex; flex-direction: column; gap: 1rem; }
+
+    /* Instruction texte au-dessus du mot */
+    .word-instruction {
+      display: block;
+      font-size: .78rem; font-weight: 600; color: var(--muted);
+      margin-bottom: .4rem;
+    }
+
+    /* ── Liste mots mobile (cachée sur desktop) ── */
+    .mob-wordlist { display: none; }
+
+    /* Desktop only label */
+    @media (max-width: 860px) { .desk-only { display: none; } }
+
+    /* ═══════════════════════════════════
+       RESPONSIVE ≤ 860px (mobile/tablette)
+    ═══════════════════════════════════ */
+    @media (max-width: 860px) {
+      body { padding-bottom: 80px; }
+      .nav-links { display: none !important; }
+      .app-banner { display: none; }              /* bannière desktop cachée */
+      .mobile-word-toggle { display: none !important; }
+      .advice-card { display: none; }             /* conseils cachés */
+      .stats-strip { display: none; }             /* stats cachées */
+
+      /* Grille → 1 seule colonne */
+      .main-grid { grid-template-columns: 1fr; padding: 0 0 1.5rem; gap: .875rem; }
+      .sidebar { display: none; }                 /* sidebar cachée */
+
+      /* Carte du mot */
+      #wordCard { border-radius: 18px; }
+      .word-card-header { padding: .75rem 1rem; }
+      .word-main { padding: 1.25rem 1rem .75rem; text-align: center; }
+      .word-instruction { font-size: .76rem; margin-bottom: .5rem; }
+      .word-title { font-size: 2.25rem !important; line-height: 1.15; }
+      .word-phonetic { font-size: .88rem; }
+      .word-meaning { font-size: .82rem; margin-top: .15rem; }
+
+      /* Micro centré, grand */
+      .recorder-zone { padding: 1rem; gap: .875rem; align-items: center; }
+      .wave-container { display: none; }
+      .mic-btn { width: 80px !important; height: 80px !important; }
+      .mic-btn svg { width: 34px !important; height: 34px !important; }
+      .mic-timer-ring { width: 96px !important; height: 96px !important; }
+      #micStatus { font-size: .8rem; text-align: center; }
+
+      /* Boutons */
+      .btn-row { gap: .5rem; max-width: 100%; }
+      .btn-outline { padding: 11px 12px; font-size: .8rem; min-height: 46px; }
+      .btn-send { max-width: 100%; padding: 13px; font-size: .88rem; min-height: 50px; }
+      .btn-choice { max-width: 100%; padding: 12px 14px; font-size: .82rem; min-height: 48px; }
+
+      /* Liste mots mobile */
+      .mob-wordlist {
+        display: block;
+        margin-top: .875rem;
+      }
+      .mob-wordlist-title {
+        font-size: .88rem; font-weight: 800; color: var(--green-dark);
+        margin-bottom: .625rem; padding-left: .1rem;
+      }
+      .mob-word-item {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: .85rem 1rem;
+        background: var(--surface);
+        border: 1.5px solid var(--border);
+        border-radius: 14px;
+        margin-bottom: .5rem;
+        cursor: pointer; gap: .75rem;
+        transition: background .15s ease;
+        -webkit-tap-highlight-color: transparent;
+      }
+      .mob-word-item:active { background: var(--green-light); }
+      .mob-word-item.current { background: var(--green-light); border-color: var(--green); }
+      .mob-word-item-info { flex: 1; min-width: 0; }
+      .mob-word-item-name { font-size: .9rem; font-weight: 800; color: var(--green-dark); }
+      .mob-word-item-sub { font-size: .73rem; color: var(--muted); margin-top: 2px; }
+      .mob-word-item-btn {
+        padding: 6px 14px; border-radius: 8px;
+        border: 1.5px solid var(--green-mid); background: #fff;
+        color: var(--green); font-size: .76rem; font-weight: 800;
+        cursor: pointer; white-space: nowrap; flex-shrink: 0;
+        font-family: var(--font); transition: .15s ease;
+      }
+      .mob-word-item.current .mob-word-item-btn {
+        background: var(--green); color: #fff; border-color: var(--green);
+      }
+
+      /* Barre succès */
+      .success-bar { border-radius: 14px; padding: .875rem 1rem; }
+
+      /* Sélecteur langue ≤ 860px */
+      .lang-btn { min-height: 48px; font-size: .82rem; }
+    }
+
+    /* ── Très petits écrans ≤ 380px ── */
+    @media (max-width: 380px) {
+      .word-title { font-size: 1.9rem !important; }
+      .lang-btn { font-size: .75rem; }
+      .mic-btn { width: 72px !important; height: 72px !important; }
+    }
+
+    /* ─── Composants communs ───────────────────── */
+    .mobile-word-toggle { display: none; }
+    .section-header { padding: .875rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .success-bar {
+      background: var(--green-light); border: 1px solid var(--green-mid);
+      border-radius: var(--radius); padding: .875rem 1.25rem;
+      display: flex; align-items: center; gap: 1rem;
+    }
+    .success-bar svg { width: 24px; height: 24px; color: var(--green); flex-shrink: 0; }
+    .success-bar p { font-size: .85rem; font-weight: 700; color: var(--green-dark); }
+    .success-bar span { font-size: .78rem; font-weight: 500; color: var(--green); display: block; }
+    .advice-card { background: #F0FDF4; border: 1px solid var(--green-mid); border-radius: var(--radius); padding: 1rem 1.25rem; }
+    .advice-card p { font-size: .82rem; font-weight: 700; color: var(--green-dark); margin-bottom: .5rem; }
+    .advice-list { list-style: none; display: flex; flex-direction: column; gap: .3rem; }
+    .advice-list li { font-size: .78rem; color: var(--muted); display: flex; align-items: flex-start; gap: .5rem; }
+    .advice-list li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex-shrink: 0; margin-top: 5px; }
+    @keyframes fadeInDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* ─── Bouton Modification Pseudo (Crayon SVG épuré) ─── */
+    .btn-edit-pencil {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      color: #FFFFFF;
+      border-radius: 6px;
+      width: 28px;
+      height: 28px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      vertical-align: middle;
+      padding: 0;
+      flex-shrink: 0;
+    }
+    .btn-edit-pencil:hover {
+      background: rgba(255, 255, 255, 0.35);
+      border-color: #FFFFFF;
+      transform: translateY(-1px);
+    }
+    .btn-edit-pencil svg {
+      width: 14px;
+      height: 14px;
+      display: block;
+    }
+    .btn-sec {
+      background: #F1F5F9; border: 1px solid var(--border); color: var(--text);
+      font-size: .875rem; font-weight: 700; border-radius: var(--radius-sm);
+      padding: .65rem 1rem; cursor: pointer; transition: all .15s;
+    }
+    .btn-sec:hover { background: #E2E8F0; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     PORTAIL D'ENTRÉE (écran nom)
+═══════════════════════════════════════════════════════════════════ -->
+<div id="gate" class="gate-overlay">
+  <div class="gate-card">
+    <div class="gate-header">
+      <div style="display: flex; justify-content: center;">
+        <img src="assets/logo.png" alt="AgriVoice" class="gate-logo" style="width: 88px; height: 88px; border-radius: 20px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15));" />
+      </div>
+      <h1>J'aime AgriVoice</h1>
+      <p>Contribuez à construire la première IA vocale agricole africaine — chaque voix compte.</p>
+    </div>
+    <form class="gate-body" id="authForm" action="javascript:void(0);" onsubmit="event.preventDefault(); handleAuthSubmit(event); return false;">
+      <p id="gateSub">Choisissez un nom d'utilisateur unique pour sécuriser vos contributions et votre place au classement.</p>
+      
+      <!-- Champ Pseudo -->
+      <div style="margin-bottom: 0.875rem;">
+        <label for="nameInput" style="display:block; font-size:0.75rem; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:4px;">Nom d'utilisateur</label>
+        <input id="nameInput" class="input-field" type="text"
+          placeholder="Ex: Koffi_229, Fatima_Zou…" maxlength="30"
+          autocomplete="username" required oninput="onUsernameInput()" />
+      </div>
+
+      <!-- Suggestions automatiques si déjà pris -->
+      <div id="suggestionsBox" style="display:none; margin-bottom:0.875rem; background:#FEF3C7; border:1px solid #FDE68A; border-radius:var(--radius-sm); padding:0.75rem;">
+        <p style="font-size:0.75rem; font-weight:700; color:#92400E; margin-bottom:6px;">Ce nom est déjà pris. Suggestions disponibles :</p>
+        <div id="suggestionsList" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+      </div>
+
+      <!-- Champ Mot de passe / Code PIN (sauvegardable par le navigateur) -->
+      <div id="pinGroup" style="margin-bottom: 0.875rem;">
+        <label for="pinInput" id="pinLabel" style="display:block; font-size:0.75rem; font-weight:700; color:var(--muted); text-transform:uppercase; margin-bottom:4px;">Code PIN ou Mot de passe</label>
+        <input id="pinInput" class="input-field" type="password"
+          placeholder="Code à 4 chiffres ou mot de passe" maxlength="20"
+          autocomplete="current-password" required />
+        <p id="pinHelp" style="font-size:0.72rem; color:var(--muted); margin-top:4px;">Ce code empêche qu'un autre contributeur prenne vos points.</p>
+      </div>
+
+      <!-- Message d'état -->
+      <p id="authMsg" style="display:none; font-size:0.8rem; font-weight:700; margin-bottom:0.875rem;"></p>
+
+      <button id="btnAuthSubmit" class="btn-primary" type="button" onclick="handleAuthSubmit(event)">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+        </svg>
+        <span id="btnAuthLabel">Continuer</span>
+      </button>
+
+      <!-- Option anonymat rapide -->
+      <button type="button" onclick="enterAnonymous()" style="background:none; border:none; color:var(--muted); font-size:0.75rem; font-weight:600; text-decoration:underline; width:100%; text-align:center; margin-top:1rem; cursor:pointer;">
+        Continuer en tant que contributeur anonyme
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     NAVIGATION
+═══════════════════════════════════════════════════════════════════ -->
+<nav class="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="nav-logo">
+      <img src="assets/logo.png" alt="AgriVoice" />
+      <div class="nav-logo-text">
+        <p>J'aime AgriVoice</p>
+        <span>Collecte Vocale Agricole</span>
+      </div>
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="nav-link active">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+          <line x1="12" y1="19" x2="12" y2="22"></line>
+        </svg>
+        Enregistrer
+      </a>
+      <a href="leaderboard.html" class="nav-link">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+          <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+          <path d="M4 22h16"></path>
+          <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+          <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+          <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+        </svg>
+        Classement
+      </a>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div class="nav-user-badge" id="navUserBadge" onclick="openNameModal()" title="Modifier mon prénom / pseudo">
+        <span id="navUserName">...</span>
+        <button type="button" id="btnEditPencilNav" class="btn-edit-pencil" title="Modifier mon nom" aria-label="Modifier mon nom" onclick="event.stopPropagation(); openNameModal()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+        </button>
+      </div>
+      <div id="navScore" class="nav-score" style="display:none">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        <span id="navScoreVal">0</span> validés
+      </div>
+      <button onclick="logout()" class="nav-link" style="background:none;border:none;cursor:pointer;padding:8px;color:var(--muted);" title="Se déconnecter">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     CARTE CADEAU & SURPRISE : MODALE POP-UP INTERSTITIELLE (PLEIN ÉCRAN)
+═══════════════════════════════════════════════════════════════════ -->
+<div id="giftPopupModal" class="gift-popup-overlay" style="display:none;" onclick="if(event.target===this) dismissGiftPopup()">
+  <div class="gift-popup-dialog">
+    <div class="gift-popup-card">
+      <div class="gift-popup-header">
+        <div class="gift-popup-badge">🎁 Surprise & Récompenses</div>
+        <button type="button" onclick="dismissGiftPopup()" class="gift-popup-close" title="Fermer" aria-label="Fermer">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div class="gift-popup-body">
+        <h2 class="gift-popup-title">Prenez votre vraie place au classement !</h2>
+        <p class="gift-popup-text">
+          Vous participez actuellement avec l'identifiant temporaire <strong id="giftPopupCurrentName" class="gift-popup-name-tag">Contributeur_XXX</strong>.
+        </p>
+        <p class="gift-popup-subtext">
+          Personnalisez votre prénom ou pseudo pour suivre vos points en direct, monter sur le podium et tenter de gagner des <strong>recharges et récompenses</strong> !
+        </p>
+
+        <form id="giftPopupForm" action="javascript:void(0);" onsubmit="event.preventDefault(); handleGiftPopupSubmit(event); return false;">
+          <div class="gift-input-group">
+            <label for="giftNameInput" class="gift-input-label">Votre prénom ou pseudo</label>
+            <div class="gift-input-container">
+              <svg class="gift-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              <input id="giftNameInput" class="gift-input-field" type="text" placeholder="Ex: Linda, Max, Fatima..." maxlength="30" autocomplete="nickname" required />
+            </div>
+          </div>
+
+          <div id="giftPopupMsg" style="display:none; font-size:0.8rem; font-weight:700; margin-bottom:1rem; padding:0.6rem 0.8rem; border-radius:8px;"></div>
+
+          <div class="gift-popup-actions">
+            <button type="button" onclick="handleGiftPopupSubmit(event)" id="btnGiftSave" class="btn-gift-submit">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              <span id="btnGiftSaveLabel">Enregistrer mon nom</span>
+            </button>
+            <button type="button" onclick="dismissGiftPopup()" class="btn-gift-later">
+              Plus tard
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     BANDEAU HERO (Mobile & Desktop)
+═══════════════════════════════════════════════════════════════════ -->
+<div class="hero">
+  <div class="hero-overlay"></div>
+  <div class="container">
+    <div class="hero-inner">
+      <div class="hero-text-col">
+        <div class="hero-tag">
+          <span class="hero-tag-dot"></span>
+          <span>IA VOCALE AGRICOLE DU BÉNIN</span>
+        </div>
+        <h1 class="hero-title">
+          <span id="heroGreet">Bienvenue</span>
+          <button type="button" onclick="openNameModal()" class="btn-edit-pencil" title="Modifier mon nom" aria-label="Modifier mon nom">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+          </button>
+        </h1>
+        <p class="hero-sub">Prêtez votre voix à la terre ! Prononcez des mots agricoles en Fɔngbe, Yorùbá ou Français pour enrichir les modèles TinyML hors-ligne.</p>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-val" id="hSent">—</div>
+          <div class="hero-stat-lbl">Envoyés</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val" id="hValidated">—</div>
+          <div class="hero-stat-lbl">Validés</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val" id="hRank">—</div>
+          <div class="hero-stat-lbl">Mon rang</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     CONTENU PRINCIPAL
+═══════════════════════════════════════════════════════════════════ -->
+<div class="container" style="padding-top: 1rem;">
+
+  <!-- ── BANNIÈRE D'IMPACT DESKTOP ── -->
+  <div class="app-banner">
+    <div class="app-banner-icon">
+      <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"/>
+      </svg>
+    </div>
+    <div class="app-banner-content">
+      <h2 class="app-banner-title">Prêtez votre voix à la terre !</h2>
+      <p class="app-banner-sub">Chaque mot enregistré aide AgriVoice à mieux comprendre les paysans sans Internet.</p>
+      <div class="app-banner-badge">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+        </svg>
+        <span id="badgeText">Badge Éclaireur de la Voix</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SÉLECTEUR DE LANGUE — icônes retirées, texte seul (desktop + mobile) ── -->
+  <div style="padding:0 0 .875rem">
+    <p class="text-label desk-only" style="margin-bottom:.625rem">Choisir ma langue</p>
+    <div class="lang-selector">
+      <button class="lang-btn active-fon" id="btn-fon" onclick="selectLang('fon')">
+        <span class="lang-label">Fɔngbe</span>
+      </button>
+      <button class="lang-btn" id="btn-yoruba" onclick="selectLang('yoruba')">
+        <span class="lang-label">Yorùbá</span>
+      </button>
+      <button class="lang-btn" id="btn-french" onclick="selectLang('french')">
+        <span class="lang-label">Français</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── BANNIÈRE D'ALERTE AUDIOS REJETÉS & CONSEILS QUALITÉ ── -->
+  <div id="rejectedAlertBanner" class="rejected-alert-banner" style="display:none;">
+    <div class="rejected-alert-header">
+      <div class="rejected-alert-title-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>Conseils Qualité : <span id="rejectedCountText">0</span> audio(s) non validé(s)</span>
+      </div>
+      <button type="button" onclick="dismissRejectedBanner()" class="rejected-alert-close" title="Fermer ce rappel" aria-label="Fermer">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <p class="rejected-alert-desc">
+      Certains de vos enregistrements ont été rejetés par l'équipe de validation (bruits de fond, vent ou mot coupé). Pour que vos prochains enregistrements soient <strong>validés et comptabilisés dans le classement</strong> :
+    </p>
+
+    <div class="rejected-tips-grid">
+      <div class="rejected-tip-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+          <line x1="12" y1="19" x2="12" y2="22"></line>
+        </svg>
+        <span><strong>1. Évitez les bruits :</strong> Enregistrez au calme, loin du vent, des conversations et des moteurs.</span>
+      </div>
+      <div class="rejected-tip-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        </svg>
+        <span><strong>2. Réécoutez systématiquement :</strong> Utilisez le bouton « Réécouter » avant de cliquer sur « Envoyer ».</span>
+      </div>
+      <div class="rejected-tip-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        <span><strong>3. Parlez distinctement :</strong> À 15 cm du micro, d'une voix posée et naturelle.</span>
+      </div>
+    </div>
+
+    <div class="rejected-alert-actions">
+      <button type="button" onclick="dismissRejectedBanner()" class="btn-rejected-ack">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"></polyline>
+        </svg>
+        <span>J'ai compris, je ferai attention</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ── BARRE SUCCÈS ── -->
+  <div id="successBar" class="success-bar" style="display:none; margin-bottom:.875rem;">
+    <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+    </svg>
+    <div>
+      <p>Audio envoyé avec succès !</p>
+      <span id="successMsg">Nos administrateurs vont l'écouter et le valider sous peu.</span>
+    </div>
+  </div>
+
+  <div class="main-grid">
+
+    <!-- ── SIDEBAR : liste des mots (desktop) ── -->
+    <aside class="sidebar" id="sidebar">
+
+      <!-- Filtre catégorie -->
+      <div class="card" style="overflow:hidden">
+        <div class="card-header-clean">
+          <div class="card-title-clean">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            </svg>
+            <span>Filtrer par catégorie</span>
+          </div>
+          <span style="font-size:0.72rem; color:var(--muted); font-weight:600;">Glisser horizontalement</span>
+        </div>
+        <div style="padding:.75rem 1rem">
+          <div class="pill-list" id="pillList"></div>
+        </div>
+      </div>
+
+      <!-- Liste mots -->
+      <div class="card" style="overflow:hidden">
+        <div class="card-header-clean">
+          <div class="card-title-clean">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            <span>Mots à enregistrer</span>
+          </div>
+          <span class="count-tag" id="sidebarCount" style="background:var(--green-light); color:var(--green); padding:3px 10px; border-radius:999px; font-weight:800; font-size:0.75rem;">—</span>
+        </div>
+        <div style="max-height:420px;overflow-y:auto">
+          <div id="wordList"></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ── MAIN : zone d'enregistrement ── -->
+    <div class="main-col">
+
+      <!-- Carte du mot + Recorder -->
+      <div class="card" style="overflow:hidden" id="wordCard">
+
+        <!-- Header carte -->
+        <div class="word-card-header" id="wordCardHeader">
+          <span class="word-badge" id="wordBadge">Fɔngbe · Cultures</span>
+          <div style="display:flex;align-items:center;gap:.75rem">
+            <span class="text-label" id="wordProgress">0 / 300</span>
+            <div class="progress-track" style="width:72px">
+              <div class="progress-fill" id="wordProgressBar" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mot principal -->
+        <div class="word-main">
+          <span class="word-instruction">Prononcez ce mot à haute voix :</span>
+          <div class="word-title" id="wordTitle">—</div>
+          <div class="word-phonetic" id="wordPhonetic">[ — ]</div>
+          <div class="word-meaning" id="wordMeaning">—</div>
+        </div>
+
+        <!-- Zone micro -->
+        <div class="recorder-zone">
+
+          <!-- Canvas waveform -->
+          <div class="wave-container">
+            <canvas id="waveCanvas"></canvas>
+            <span class="wave-placeholder" id="wavePH">Appuyer sur le micro pour commencer</span>
+          </div>
+
+          <!-- Bouton micro avec arc timer -->
+          <div class="mic-wrapper">
+            <svg class="mic-timer-ring" width="96" height="96" viewBox="0 0 96 96">
+              <circle class="timer-circle timer-track" cx="48" cy="48" r="42" />
+              <circle class="timer-circle timer-fill" id="timerArc" cx="48" cy="48" r="42"
+                stroke-dasharray="263.9" stroke-dashoffset="263.9"/>
+            </svg>
+            <button id="micBtn" class="mic-btn mic-idle" onclick="handleMic()">
+              <svg id="micIcon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"/>
+              </svg>
+            </button>
+          </div>
+
+          <!-- Statut -->
+          <p class="mic-status" id="micStatus">Appuyer sur le micro et dites « <span id="micWordHint">—</span> »</p>
+
+          <!-- Actions post-enregistrement -->
+          <div class="post-actions" id="postActions">
+            <div class="btn-row">
+              <button class="btn-outline" id="btnListenBack" onclick="listenBack()">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                  <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                </svg>
+                Réécouter
+              </button>
+              <button class="btn-outline" onclick="retake()">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                  <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                </svg>
+                Reprendre
+              </button>
+            </div>
+            <button class="btn-send" id="btnSend" onclick="sendAudio()">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+              <span id="btnSendTxt">Envoyer cet enregistrement</span>
+            </button>
+          </div>
+
+          <!-- Choix après envoi -->
+          <div class="after-send" id="afterSend">
+            <p class="after-label">Que souhaitez-vous faire ?</p>
+            <button class="btn-choice" onclick="recordAgain()">
+              <span>Enregistrer à nouveau ce mot</span>
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+              </svg>
+            </button>
+            <button class="btn-choice" onclick="nextWord()">
+              <span>Passer au mot suivant</span>
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Bande de stats personnelles -->
+        <div class="stats-strip">
+          <div class="stat-item">
+            <div class="stat-value" id="statSent">0</div>
+            <div class="stat-label">Envoyés</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value green" id="statValidated">0</div>
+            <div class="stat-label">Validés</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value yellow" id="statRank">—</div>
+            <div class="stat-label">Mon rang</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Conseils -->
+      <div class="advice-card">
+        <p>Conseils pour un enregistrement de qualité</p>
+        <ul class="advice-list">
+          <li>Parlez clairement et naturellement, sans chuchoter</li>
+          <li>Tenez le téléphone à 15 à 30 cm de votre bouche</li>
+          <li>Réduisez les bruits de fond (vent, moteur, conversations)</li>
+          <li>Durée idéale : entre 1 et 3 secondes par mot</li>
+          <li>Plusieurs enregistrements du même mot avec différentes voix aident l'IA</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── LISTE MOTS MOBILE (comme "Autres mots à enregistrer" de l'app) ── -->
+  <div class="mob-wordlist" id="mobWordlist">
+    <div class="mob-wordlist-title" id="mobWordlistTitle">Autres mots à enregistrer en Fɔngbe :</div>
+    <div id="mobWordlistItems"></div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     BARRE DE NAVIGATION FLOTTANTE EN BAS (MOBILE)
+═══════════════════════════════════════════════════════════════════ -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+    <a href="index.html" class="bottom-nav-item active">
+      <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+        <line x1="12" y1="19" x2="12" y2="22"></line>
+      </svg>
+      <span>Enregistrer</span>
+    </a>
+    <a href="leaderboard.html" class="bottom-nav-item">
+      <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+        <path d="M4 22h16"></path>
+        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path>
+        <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path>
+        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"></path>
+      </svg>
+      <span>Classement</span>
+    </a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     MODALE CHANGEMENT DE PSEUDO / PRÉNOM
+═══════════════════════════════════════════════════════════════════ -->
+<div id="nameModal" class="modal-overlay" style="display:none;" onclick="if(event.target===this) closeNameModal()">
+  <div class="modal-dialog">
+    <!-- Header avec branding AgriVoice -->
+    <div class="modal-header-brand">
+      <div class="modal-header-top">
+        <div>
+          <div class="modal-brand-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="22"></line>
+            </svg>
+            <span>Profil Contributeur</span>
+          </div>
+          <h2 class="modal-title">Modifier mon nom</h2>
+          <p class="modal-subtitle">Votre prénom ou pseudo sera visible sur le classement public et associé à vos enregistrements.</p>
+        </div>
+        <button type="button" onclick="closeNameModal()" class="modal-close-btn" aria-label="Fermer">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Body formulaire -->
+    <form id="nameChangeForm" class="modal-body" action="javascript:void(0);" onsubmit="event.preventDefault(); handleNameChangeSubmit(event); return false;">
+      <div class="modal-input-wrapper">
+        <label for="modalNameInput" class="modal-input-label">Prénom ou Pseudo</label>
+        <div class="modal-input-container">
+          <svg class="modal-input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+            <circle cx="12" cy="7" r="4"></circle>
+          </svg>
+          <input id="modalNameInput" class="modal-input-field" type="text" placeholder="Ex: Linda, Max, Fatima..." maxlength="30" autocomplete="nickname" required />
+        </div>
+      </div>
+
+      <div class="modal-info-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+        </svg>
+        <p class="modal-info-text">
+          <strong>Synchronisation automatique :</strong> tous vos audios déjà envoyés et vos points seront instantanément transférés sous ce nouveau nom.
+        </p>
+      </div>
+
+      <div id="modalSyncMsg" style="display:none; font-size:0.8rem; font-weight:700; margin-bottom:1rem; padding:0.6rem 0.8rem; border-radius:8px;"></div>
+
+      <div class="modal-actions">
+        <button type="button" onclick="closeNameModal()" class="btn-modal-cancel">Annuler</button>
+        <button type="button" onclick="handleNameChangeSubmit(event)" id="btnModalSave" class="btn-modal-submit">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span id="btnModalSaveLabel">Enregistrer</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════════════════════════════════ -->
+<script type="module">
+import { WORD_PROMPTS, getPromptsByLanguage, LANGUAGES, CATEGORIES } from './js/word-prompts.js?v=2.6';
+import { AgriRecorder, playBlob, stopPreview } from './js/recorder.js?v=2.6';
+import {
+  uploadContribution, getContributionCounts, getGlobalStats, getTopContributors,
+  getOrCreateSession, getSessionScore, saveContributorName, getContributorName,
+  checkUsername, suggestUsernames, registerContributor, loginContributor, syncContributorName,
+  getUserRejectedContributions
+} from './js/supabase-client.js?v=2.6';
+
+/* ── État ────────────────────────────────────────────────────────── */
+const session = getOrCreateSession();
+let currentLang     = 'fon';
+let currentCategory = 'Tous';
+let currentPrompt   = null;
+let currentBlob     = null;
+let currentDuration = 0;
+let contribCounts   = {};
+let myValidated     = 0;
+let mySent          = 0;
+let existingUserObj = null;
+let inputCheckTimer = null;
+
+/* ── Recorder ────────────────────────────────────────────────────── */
+const recorder = new AgriRecorder({
+  canvasId:     'waveCanvas',
+  maxDurationMs: 3500,
+  onStart: () => setStateRecording(),
+  onStop:  (blob, ms) => { currentBlob = blob; currentDuration = ms; setStateDone(); },
+  onError: (err) => { showToast('Erreur micro : ' + (err.message || 'permission refusée'), true); setStateIdle(); }
+});
+
+/* ── Exposition globale ──────────────────────────────────────────── */
+Object.assign(window, {
+  handleAuthSubmit, onUsernameInput, enterAnonymous, chooseSuggestion,
+  selectLang, handleMic, listenBack, retake,
+  sendAudio, recordAgain, nextWord, toggleSidebar, logout,
+  openNameModal, closeNameModal, handleNameChangeSubmit,
+  checkAndShowGiftPopup, dismissGiftPopup, handleGiftPopupSubmit,
+  dismissRejectedBanner
+});
+
+/* ── Vérification Pseudo en direct ───────────────────────────────── */
+function onUsernameInput() {
+  clearTimeout(inputCheckTimer);
+  const val = (document.getElementById('nameInput')?.value || '').trim();
+  const suggestionsBox = document.getElementById('suggestionsBox');
+  const authMsg = document.getElementById('authMsg');
+  const pinHelp = document.getElementById('pinHelp');
+  const pinInput = document.getElementById('pinInput');
+  const btnLabel = document.getElementById('btnAuthLabel');
+
+  if (suggestionsBox) suggestionsBox.style.display = 'none';
+  if (authMsg) authMsg.style.display = 'none';
+
+  if (!val || val.length < 2) {
+    existingUserObj = null;
+    if (pinHelp) {
+      pinHelp.textContent = "Ce code empêche qu'un autre contributeur prenne vos points.";
+      pinHelp.style.color = "var(--muted)";
+    }
+    if (pinInput) pinInput.autocomplete = "new-password";
+    if (btnLabel) btnLabel.textContent = "Créer mon profil et commencer";
+    return;
+  }
+
+  inputCheckTimer = setTimeout(async () => {
+    try {
+      const { exists, contributor } = await checkUsername(val);
+      if (exists && contributor) {
+        existingUserObj = contributor;
+        if (pinInput) pinInput.autocomplete = "current-password";
+        if (pinHelp) {
+          pinHelp.textContent = "Compte existant trouvé ! Entrez votre mot de passe/PIN pour vous connecter.";
+          pinHelp.style.color = "var(--green)";
+        }
+        if (btnLabel) btnLabel.textContent = "Se connecter";
+
+        // Proposer des alternatives si l'utilisateur souhaite créer un nouveau compte
+        const suggestions = await suggestUsernames(val);
+        const listEl = document.getElementById('suggestionsList');
+        if (listEl && suggestions && suggestions.length > 0) {
+          listEl.innerHTML = suggestions.map(s => `
+            <button type="button" onclick="chooseSuggestion('${s}')" style="background:#fff; border:1px solid #D97706; color:#78350F; font-size:0.75rem; font-weight:700; padding:3px 8px; border-radius:999px; cursor:pointer;">
+              + ${s}
+            </button>
+          `).join('');
+          if (suggestionsBox) suggestionsBox.style.display = 'block';
+        }
+      } else {
+        existingUserObj = null;
+        if (pinInput) pinInput.autocomplete = "new-password";
+        if (pinHelp) {
+          pinHelp.textContent = "Nouveau pseudo disponible ! Créez un code PIN ou mot de passe pour le protéger.";
+          pinHelp.style.color = "var(--muted)";
+        }
+        if (btnLabel) btnLabel.textContent = "Créer mon profil et commencer";
+      }
+    } catch (err) {
+      console.warn("Erreur vérification pseudo :", err);
+    }
+  }, 300);
+}
+
+function chooseSuggestion(pseudo) {
+  const nameInp = document.getElementById('nameInput');
+  if (nameInp) {
+    nameInp.value = pseudo;
+    onUsernameInput();
+  }
+}
+
+/* ── Soumission Auth ─────────────────────────────────────────────── */
+async function handleAuthSubmit(e) {
+  if (e) e.preventDefault();
+  const nameInp = document.getElementById('nameInput');
+  const pinInp  = document.getElementById('pinInput');
+  const name = (nameInp?.value || '').trim().slice(0, 35);
+  const pin  = (pinInp?.value || '').trim();
+  const btn = document.getElementById('btnAuthSubmit');
+  const btnLbl = document.getElementById('btnAuthLabel');
+
+  if (!name || !pin) {
+    showAuthMsg("Veuillez renseigner un pseudo et un code PIN.", true);
+    return;
+  }
+
+  if (btn) btn.disabled = true;
+  if (btnLbl) btnLbl.textContent = "Connexion...";
+
+  try {
+    // Double vérification dynamique : si l'auto-remplissage du navigateur n'a pas déclenché oninput
+    let userToCheck = existingUserObj;
+    if (!userToCheck || userToCheck.username.toLowerCase() !== name.toLowerCase()) {
+      const { exists, contributor } = await checkUsername(name);
+      if (exists && contributor) {
+        userToCheck = contributor;
+      }
+    }
+
+    if (userToCheck) {
+      // Le compte existe déjà -> Tentative de connexion
+      const { success, error } = await loginContributor(userToCheck, pin);
+      if (!success) {
+        showAuthMsg(error || "Ce compte existe déjà. Code PIN incorrect.", true);
+        if (btn) btn.disabled = false;
+        if (btnLbl) btnLbl.textContent = "Se connecter";
+        return;
+      }
+      finishAuth(userToCheck.username);
+    } else {
+      // Nouveau compte -> Inscription
+      const { data, error } = await registerContributor(name, pin, session);
+      if (error) {
+        // Si une contrainte d'unicité est retournée par la base
+        if (error.code === '23505' || error.message?.includes('duplicate key')) {
+          showAuthMsg("Ce nom d'utilisateur est déjà pris. Saisissez votre mot de passe pour vous connecter.", true);
+          existingUserObj = { username: name };
+          onUsernameInput();
+          if (btn) btn.disabled = false;
+          if (btnLbl) btnLbl.textContent = "Se connecter";
+          return;
+        } else {
+          console.warn("Avertissement inscription contributors :", error);
+        }
+      }
+      finishAuth(name);
+    }
+  } catch (err) {
+    console.error("Erreur auth:", err);
+    saveContributorName(name);
+    finishAuth(name);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function enterAnonymous() {
+  saveContributorName("Anonyme");
+  finishAuth("Anonyme");
+}
+
+function finishAuth(name) {
+  const gate = document.getElementById('gate');
+  if (gate) {
+    gate.style.pointerEvents = 'none';
+    gate.style.opacity = '0';
+    gate.style.transition = 'opacity 0.25s ease';
+    setTimeout(() => {
+      gate.style.display = 'none';
+    }, 250);
+  }
+  const greetEl = document.getElementById('heroGreet');
+  if (greetEl) greetEl.textContent = `Bonjour, ${name}`;
+  const navUserEl = document.getElementById('navUserName');
+  if (navUserEl) navUserEl.textContent = name;
+  setTimeout(() => checkAndShowGiftPopup(), 800);
+  init();
+}
+
+function showAuthMsg(text, isError = false) {
+  const el = document.getElementById('authMsg');
+  el.textContent = text;
+  el.style.color = isError ? "var(--red)" : "var(--green)";
+  el.style.display = "block";
+}
+
+
+/* ── Init ────────────────────────────────────────────────────────── */
+async function init() {
+  buildPills();
+  selectLang('fon');
+  loadCounts();
+  loadStats();
+}
+
+/* ── Stats personnelles & globales ────────────────────────────────── */
+async function loadStats() {
+  try {
+    const currentName = getContributorName();
+    const [stats, top, myVal, mySt, rejectedRes] = await Promise.all([
+      getGlobalStats(),
+      getTopContributors(50),
+      getSessionScore(session, 'validated', currentName),
+      getSessionScore(session, 'all', currentName),
+      getUserRejectedContributions(session, currentName)
+    ]);
+
+    mySent = mySt || 0;
+    myValidated = myVal || 0;
+
+    const myRankIdx = (top || []).findIndex(t => 
+      (t.sessionList && t.sessionList.includes(session)) ||
+      t.session === session || 
+      (currentName && t.name && t.name.toLowerCase() === currentName.toLowerCase())
+    );
+    const myRank = myRankIdx >= 0 ? (myRankIdx + 1) + (myRankIdx === 0 ? 'er' : 'e') : '—';
+
+    const hSentEl = document.getElementById('hSent');
+    const hValEl  = document.getElementById('hValidated');
+    const hRankEl = document.getElementById('hRank');
+
+    if (hSentEl) hSentEl.textContent = mySent;
+    if (hValEl)  hValEl.textContent  = myValidated;
+    if (hRankEl) hRankEl.textContent = myRank;
+
+    const navScoreEl = document.getElementById('navScore');
+    const navScoreVal = document.getElementById('navScoreVal');
+    if (navScoreEl && navScoreVal) {
+      navScoreVal.textContent = myValidated;
+      navScoreEl.style.display = myValidated > 0 ? 'inline-flex' : 'none';
+    }
+
+    const statSentEl = document.getElementById('statSent');
+    const statValEl  = document.getElementById('statValidated');
+    if (statSentEl) statSentEl.textContent = mySent;
+    if (statValEl)  statValEl.textContent  = myValidated;
+
+    const badgeText = `${mySent} mot(s) envoyé(s) • ${myValidated} validé(s)`;
+    const desktopBadge = document.getElementById('badgeText');
+    const mobileBadge  = document.getElementById('mobBadgeText');
+    if (desktopBadge) desktopBadge.textContent = badgeText;
+    if (mobileBadge)  mobileBadge.textContent  = badgeText;
+    updateNavScore();
+
+    // Gestion des audios rejetés & conseils qualité
+    const rejectedList = rejectedRes?.data || [];
+    const rejBanner = document.getElementById('rejectedAlertBanner');
+    const rejCountEl = document.getElementById('rejectedCountText');
+    if (rejectedList.length > 0) {
+      const rejCount = rejectedList.length;
+      if (rejCountEl) rejCountEl.textContent = rejCount;
+      const ackCount = parseInt(localStorage.getItem('agrivoice_rejected_ack_count') || '0', 10);
+      if (rejBanner && rejCount > ackCount) {
+        rejBanner.style.display = 'block';
+      }
+    } else {
+      if (rejBanner) rejBanner.style.display = 'none';
+    }
+  } catch (err) {
+    console.error("Erreur chargement statistiques :", err);
+  }
+}
+
+function dismissRejectedBanner() {
+  const banner = document.getElementById('rejectedAlertBanner');
+  if (banner) {
+    banner.style.opacity = '0';
+    banner.style.transform = 'translateY(-8px)';
+    banner.style.transition = 'all 0.25s ease';
+    setTimeout(() => { banner.style.display = 'none'; banner.style.opacity = '1'; banner.style.transform = 'none'; }, 250);
+  }
+  const countText = document.getElementById('rejectedCountText')?.textContent || '1';
+  localStorage.setItem('agrivoice_rejected_ack_count', countText);
+  showToast("Conseils bien pris en compte ! Bon enregistrement.", false);
+}
+
+async function loadCounts() {
+  contribCounts = await getContributionCounts();
+  buildWordList();
+  buildMobWordlist();
+}
+
+function updateNavScore() {
+  const ns = document.getElementById('navScore');
+  document.getElementById('navScoreVal').textContent = myValidated;
+  ns.style.display = myValidated > 0 ? 'flex' : 'none';
+}
+
+/* ── Langue ──────────────────────────────────────────────────────── */
+function selectLang(lang) {
+  currentLang = lang;
+  ['fon','yoruba','french'].forEach(l => {
+    const btn = document.getElementById(`btn-${l}`);
+    if (btn) btn.className = `lang-btn ${l === lang ? `active-${l}` : ''}`;
+  });
+  buildWordList();
+  buildMobWordlist();
+  selectFirstWord();
+  // Titre liste mobile
+  const langLabels = { fon: 'Fɔngbe', yoruba: 'Yorùbá', french: 'Français' };
+  const titleEl = document.getElementById('mobWordlistTitle');
+  if (titleEl) titleEl.textContent = `Autres mots à enregistrer en ${langLabels[lang]} :`;
+}
+
+/* ── Pills catégorie ─────────────────────────────────────────────── */
+function buildPills() {
+  const el = document.getElementById('pillList');
+  el.innerHTML = '';
+  CATEGORIES.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.textContent = cat;
+    btn.className   = `pill ${cat === currentCategory ? 'active' : ''}`;
+    btn.onclick     = () => {
+      currentCategory = cat;
+      el.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      buildWordList(); buildMobWordlist(); selectFirstWord();
+    };
+    el.appendChild(btn);
+  });
+}
+
+/* ── Liste mots DESKTOP (sidebar) ────────────────────────────────── */
+function getWordCount(p) {
+  if (!p) return 0;
+  const cleanWord = (p.word || '').toLowerCase().trim();
+  const cleanEdge = (p.edgeLabel || '').toLowerCase().trim();
+  return contribCounts[cleanWord] ?? contribCounts[cleanEdge] ?? contribCounts[p.id] ?? 0;
+}
+
+function getSortedPrompts() {
+  return getPromptsByLanguage(currentLang)
+    .filter(p => currentCategory === 'Tous' || p.category === currentCategory)
+    .sort((a, b) => getWordCount(a) - getWordCount(b));
+}
+
+function buildWordList() {
+  const prompts = getSortedPrompts();
+  const el = document.getElementById('wordList');
+  el.innerHTML = '';
+  document.getElementById('sidebarCount').textContent = `${prompts.length} mots`;
+
+  prompts.forEach(p => {
+    const cnt = getWordCount(p);
+    const pct = Math.min(100, Math.round(cnt / p.targetCount * 100));
+    const item = document.createElement('div');
+    item.className = `word-list-item ${currentPrompt?.id === p.id ? 'current' : ''}`;
+    item.dataset.id = p.id;
+    item.onclick = () => selectPrompt(p);
+    item.innerHTML = `
+      <div style="flex:1;min-width:0">
+        <div class="wli-word">${p.word}</div>
+        <div class="wli-meta">${p.meaningFr} · ${p.category}</div>
+        <div class="progress-track" style="margin-top:4px">
+          <div class="progress-fill" style="width:${pct}%"></div>
+        </div>
+      </div>
+      <div class="wli-count">${cnt}</div>
+    `;
+    el.appendChild(item);
+  });
+}
+
+/* ── Liste mots MOBILE ───────────────────────────────────────────── */
+function buildMobWordlist() {
+  const prompts = getSortedPrompts();
+  const el = document.getElementById('mobWordlistItems');
+  if (!el) return;
+  el.innerHTML = '';
+  prompts.forEach((p, idx) => {
+    const isCurrent = currentPrompt?.id === p.id;
+    const item = document.createElement('div');
+    item.className = `mob-word-item ${isCurrent ? 'current' : ''}`;
+    item.dataset.id = p.id;
+    item.onclick = () => selectPrompt(p);
+    item.innerHTML = `
+      <div class="mob-word-item-info">
+        <div class="mob-word-item-name">${p.word} <span style="font-size:.74rem;font-weight:500;color:var(--muted);">(${p.meaningFr})</span></div>
+        <div class="mob-word-item-sub">Phonétique : ${p.phonetic}</div>
+      </div>
+      <button class="mob-word-item-btn">${isCurrent ? 'En cours' : 'Choisir'}</button>
+    `;
+    // Bouton Choisir déclenche selectPrompt
+    item.querySelector('.mob-word-item-btn').onclick = (e) => {
+      e.stopPropagation();
+      selectPrompt(p);
+    };
+    el.appendChild(item);
+  });
+}
+
+function selectFirstWord() {
+  const first = getSortedPrompts()[0];
+  if (first) selectPrompt(first);
+}
+
+/* ── Sélectionner un prompt ──────────────────────────────────────── */
+function selectPrompt(p) {
+  stopPreview();
+  currentPrompt   = p;
+  currentBlob     = null;
+  currentDuration = 0;
+
+  const cfg    = LANGUAGES[p.language];
+  const cnt    = getWordCount(p);
+  const pct    = Math.min(100, Math.round(cnt / p.targetCount * 100));
+  const colors = { fon: '#196E3F', yoruba: '#D97706', french: '#2563EB' };
+
+  // Affichage comme l'app : « Àgbàdo »
+  document.getElementById('wordTitle').textContent    = `« ${p.word} »`;
+  // Phonétique + sens sur une ligne comme l'app
+  document.getElementById('wordPhonetic').textContent = `Prononciation : [ ${p.phonetic} ] • Sens : ${p.meaningFr}`;
+  document.getElementById('wordMeaning').textContent  = '';
+
+  document.getElementById('wordBadge').textContent    = `${p.category}`;
+  document.getElementById('wordBadge').className      = `word-badge badge-${p.language}`;
+
+  // Compteur style app "Mot 1 / 12"
+  const allPrompts = getPromptsByLanguage(currentLang)
+    .filter(q => currentCategory === 'Tous' || q.category === currentCategory);
+  const idx = allPrompts.findIndex(q => q.id === p.id);
+  document.getElementById('wordProgress').textContent = `Mot ${idx + 1} / ${allPrompts.length}`;
+  document.getElementById('wordProgressBar').style.width = `${pct}%`;
+  document.getElementById('wordCardHeader').style.borderLeftColor = colors[p.language];
+
+  // Hint texte sous le micro : "Appuyer sur le micro et dites « Àgbàdo »"
+  const hint = document.getElementById('micWordHint');
+  if (hint) hint.textContent = p.word;
+
+  // Sync sidebar desktop
+  document.querySelectorAll('.word-list-item').forEach(li =>
+    li.classList.toggle('current', li.dataset.id === p.id)
+  );
+
+  // Sync liste mobile + badge mis à jour
+  document.querySelectorAll('.mob-word-item').forEach(li => {
+    const isCur = li.dataset.id === p.id;
+    li.classList.toggle('current', isCur);
+    const btn = li.querySelector('.mob-word-item-btn');
+    if (btn) btn.textContent = isCur ? 'En cours' : 'Choisir';
+  });
+
+  setStateIdle();
+  document.getElementById('successBar').style.display = 'none';
+
+  // Scroll vers la carte sur mobile
+  if (window.innerWidth <= 860) {
+    const card = document.getElementById('wordCard');
+    if (card) setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+  }
+}
+
+/* ── États interface ─────────────────────────────────────────────── */
+let timerIv = null;
+
+function setStateIdle() {
+  clearInterval(timerIv);
+  setMicBtn('idle');
+  // Texte avec nom du mot courant comme dans l'app
+  const hint = document.getElementById('micWordHint');
+  const wordName = hint?.textContent || '—';
+  document.getElementById('micStatus').innerHTML =
+    `Appuyer sur le micro et dites « <span id="micWordHint">${wordName}</span> »`;
+  document.getElementById('micStatus').className = 'mic-status';
+  document.getElementById('postActions').classList.remove('visible');
+  document.getElementById('afterSend').classList.remove('visible');
+  document.getElementById('timerArc').style.strokeDashoffset = '263.9';
+  const wph = document.getElementById('wavePH');
+  if (wph) wph.style.display = 'block';
+}
+
+function setStateRecording() {
+  clearInterval(timerIv);
+  setMicBtn('record');
+  document.getElementById('micStatus').textContent  = 'Enregistrement en cours — appuyer pour arrêter';
+  document.getElementById('micStatus').className    = 'mic-status recording';
+  document.getElementById('postActions').classList.remove('visible');
+  document.getElementById('afterSend').classList.remove('visible');
+  document.getElementById('wavePH').style.display   = 'none';
+
+  const total = recorder.maxDurationMs;
+  const C     = 263.9; // circumference
+  const t0    = Date.now();
+  timerIv = setInterval(() => {
+    const r = Math.min(1, (Date.now() - t0) / total);
+    document.getElementById('timerArc').style.strokeDashoffset = C * (1 - r);
+  }, 50);
+}
+
+function setStateDone() {
+  clearInterval(timerIv);
+  document.getElementById('timerArc').style.strokeDashoffset = '0';
+  setMicBtn('done');
+  document.getElementById('micStatus').textContent = 'Enregistrement terminé — vérifiez avant d\'envoyer';
+  document.getElementById('micStatus').className   = 'mic-status done';
+  document.getElementById('postActions').classList.add('visible');
+  document.getElementById('wavePH').style.display  = 'none';
+}
+
+function setMicBtn(state) {
+  const btn = document.getElementById('micBtn');
+  btn.className = `mic-btn mic-${state}`;
+  const paths = {
+    idle:   `<path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 016 0v6a3 3 0 01-3 3z"/>`,
+    record: `<rect x="9" y="9" width="6" height="6" rx="1" fill="white" stroke="none"/>`,
+    done:   `<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>`,
+  };
+  document.getElementById('micIcon').innerHTML = paths[state] || paths.idle;
+}
+
+/* ── Actions recorder ────────────────────────────────────────────── */
+function handleMic() {
+  if (!currentPrompt) return;
+  if (recorder.isRecording) { recorder.stop(); return; }
+  currentBlob = null;
+  recorder.start();
+}
+
+function listenBack() {
+  if (!currentBlob) {
+    showToast("Aucun enregistrement à réécouter.", true);
+    return;
+  }
+  const btn = document.getElementById('btnListenBack');
+  const originalHtml = btn.innerHTML;
+  btn.classList.add('playing');
+  btn.style.background = 'var(--green-light)';
+  btn.style.color = 'var(--green-dark)';
+  btn.style.border = '1px solid var(--green)';
+  btn.innerHTML = `
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" class="animate-pulse">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M15.536 8.464a5 5 0 010 7.072M17.657 6.343a8 8 0 010 11.314M12 4L6 9H3v6h3l6 5V4z"/>
+    </svg>
+    Lecture en cours...
+  `;
+
+  playBlob(currentBlob, () => {
+    btn.classList.remove('playing');
+    btn.style = '';
+    btn.innerHTML = originalHtml;
+  });
+}
+
+
+function retake() {
+  stopPreview();
+  currentBlob = null;
+  setStateIdle();
+}
+
+/* ── Envoi ───────────────────────────────────────────────────────── */
+async function sendAudio() {
+  if (!currentBlob || !currentPrompt) return;
+  const btn = document.getElementById('btnSend');
+  const lbl = document.getElementById('btnSendTxt');
+  btn.disabled = true;
+  lbl.textContent = 'Envoi en cours…';
+
+  const { error } = await uploadContribution(currentBlob, currentPrompt, session, currentDuration, getContributorName());
+
+  btn.disabled = false;
+  lbl.textContent = 'Envoyer cet enregistrement';
+
+  if (error) { showToast('Erreur lors de l\'envoi. Vérifiez votre connexion.', true); return; }
+
+  // Mise à jour locale
+  contribCounts[currentPrompt.id] = (contribCounts[currentPrompt.id] || 0) + 1;
+  const cWord = (currentPrompt.word || '').toLowerCase().trim();
+  contribCounts[cWord] = (contribCounts[cWord] || 0) + 1;
+  mySent++;
+  document.getElementById('statSent').textContent = mySent;
+  buildWordList();
+
+  // Mise à jour header carte
+  const cnt = getWordCount(currentPrompt);
+  const pct = Math.min(100, Math.round(cnt / currentPrompt.targetCount * 100));
+  document.getElementById('wordProgress').textContent = `${cnt} / ${currentPrompt.targetCount}`;
+  document.getElementById('wordProgressBar').style.width = `${pct}%`;
+
+  // Succès
+  document.getElementById('successBar').style.display = 'flex';
+  document.getElementById('successMsg').textContent =
+    `"${currentPrompt.word}" reçu. Nos administrateurs vont l'écouter et le valider.`;
+  document.getElementById('postActions').classList.remove('visible');
+  document.getElementById('afterSend').classList.add('visible');
+
+  currentBlob = null;
+}
+
+/* ── Après envoi ─────────────────────────────────────────────────── */
+function recordAgain() {
+  document.getElementById('afterSend').classList.remove('visible');
+  document.getElementById('successBar').style.display = 'none';
+  setStateIdle();
+}
+
+function nextWord() {
+  const prompts = getPromptsByLanguage(currentLang)
+    .filter(p => currentCategory === 'Tous' || p.category === currentCategory);
+  const idx  = prompts.findIndex(p => p.id === currentPrompt?.id);
+  const next = prompts[(idx + 1) % prompts.length];
+  selectPrompt(next);
+}
+
+/* ── Mobile sidebar ──────────────────────────────────────────────── */
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+/* ── Toast ───────────────────────────────────────────────────────── */
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${isError ? 'error' : ''} show`;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+/* ── Session & Déconnexion / Changement de pseudo ────────────────── */
+function logout() {
+  localStorage.removeItem("agrivoice_contributor_name");
+  location.reload();
+}
+
+window.checkAndShowGiftPopup = checkAndShowGiftPopup;
+window.dismissGiftPopup = dismissGiftPopup;
+window.handleGiftPopupSubmit = handleGiftPopupSubmit;
+window.openNameModal = openNameModal;
+window.closeNameModal = closeNameModal;
+window.handleNameChangeSubmit = handleNameChangeSubmit;
+
+/* ── Gestion Modale Interstitielle Cadeau & Synchronisation ───────── */
+function isStandardOrAnonymousName(name) {
+  if (!name) return true;
+  const n = name.trim().toLowerCase();
+  return n === 'anonyme' || n.startsWith('contributeur_') || n.startsWith('anonyme_');
+}
+
+function checkAndShowGiftPopup() {
+  const current = (getContributorName() || '').trim();
+  const modal = document.getElementById('giftPopupModal');
+  if (!modal) return;
+  
+  // Si l'utilisateur a déjà un vrai prénom/pseudo personnalisé, ne pas afficher
+  if (!isStandardOrAnonymousName(current)) {
+    modal.style.display = 'none';
+    return;
+  }
+  
+  // Vérification de la date de rejet (cooldown de 3 minutes entre 2 rappels dans la même session)
+  const dismissedAt = localStorage.getItem('agrivoice_gift_popup_dismissed_at');
+  const now = Date.now();
+  if (dismissedAt && (now - parseInt(dismissedAt, 10)) < 180000) {
+    modal.style.display = 'none';
+    return;
+  }
+  
+  const curNameEl = document.getElementById('giftPopupCurrentName');
+  if (curNameEl) curNameEl.textContent = current || 'Anonyme';
+  const input = document.getElementById('giftNameInput');
+  if (input) input.value = isStandardOrAnonymousName(current) ? '' : current;
+  const msg = document.getElementById('giftPopupMsg');
+  if (msg) msg.style.display = 'none';
+  
+  modal.style.display = 'flex';
+}
+
+function dismissGiftPopup() {
+  localStorage.setItem('agrivoice_gift_popup_dismissed_at', Date.now().toString());
+  const modal = document.getElementById('giftPopupModal');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+  
+  // Alerte courtoise indiquant où modifier plus tard
+  showToast("Vous pourrez modifier votre nom à tout moment en cliquant sur le crayon à côté de votre pseudo en haut.", false);
+  
+  // Accentuation visuelle sur les boutons crayons
+  highlightPencilIcons();
+}
+
+function highlightPencilIcons() {
+  const pencils = document.querySelectorAll('.btn-edit-pencil');
+  pencils.forEach(p => {
+    p.classList.remove('pencil-highlight');
+    void p.offsetWidth;
+    p.classList.add('pencil-highlight');
+    setTimeout(() => p.classList.remove('pencil-highlight'), 3500);
+  });
+}
+
+async function handleGiftPopupSubmit(e) {
+  e.preventDefault();
+  const input = document.getElementById('giftNameInput');
+  const newName = (input?.value || '').trim();
+  const msg = document.getElementById('giftPopupMsg');
+  const btn = document.getElementById('btnGiftSave');
+  const btnLbl = document.getElementById('btnGiftSaveLabel');
+
+  if (!newName) {
+    if (msg) {
+      msg.textContent = 'Veuillez saisir votre prénom ou pseudo.';
+      msg.style.color = 'var(--red)';
+      msg.style.display = 'block';
+    }
+    return;
+  }
+
+  const oldName = getContributorName();
+  if (btn) btn.disabled = true;
+  if (btnLbl) btnLbl.textContent = 'Enregistrement...';
+
+  try {
+    const res = await syncContributorName(session, newName, oldName);
+    if (res.success) {
+      existingUserObj = { username: newName };
+      const greetEl = document.getElementById('heroGreet');
+      if (greetEl) greetEl.textContent = `Bonjour, ${newName}`;
+      const navUserEl = document.getElementById('navUserName');
+      if (navUserEl) navUserEl.textContent = newName;
+      
+      localStorage.removeItem('agrivoice_gift_popup_dismissed_at');
+      const modal = document.getElementById('giftPopupModal');
+      if (modal) modal.style.display = 'none';
+      
+      showToast(`Bravo ${newName} ! Vos audios et votre classement sont synchronisés !`);
+      await loadStats();
+    } else {
+      if (msg) {
+        msg.textContent = res.error || 'Erreur lors de la synchronisation.';
+        msg.style.color = 'var(--red)';
+        msg.style.display = 'block';
+      }
+    }
+  } catch (err) {
+    if (msg) {
+      msg.textContent = 'Erreur : ' + (err.message || 'vérifiez votre connexion');
+      msg.style.color = 'var(--red)';
+      msg.style.display = 'block';
+    }
+  } finally {
+    if (btn) btn.disabled = false;
+    if (btnLbl) btnLbl.textContent = 'Enregistrer mon nom';
+  }
+}
+
+function openNameModal() {
+  const current = getContributorName() || '';
+  const input = document.getElementById('modalNameInput');
+  const msg = document.getElementById('modalSyncMsg');
+  if (msg) msg.style.display = 'none';
+  if (input) {
+    input.value = isStandardOrAnonymousName(current) ? '' : current;
+  }
+  const modal = document.getElementById('nameModal');
+  if (modal) {
+    modal.style.display = 'flex';
+    setTimeout(() => { if (input) input.focus(); }, 100);
+  }
+}
+
+function closeNameModal() {
+  const modal = document.getElementById('nameModal');
+  if (modal) modal.style.display = 'none';
+}
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') {
+    closeNameModal();
+    const giftModal = document.getElementById('giftPopupModal');
+    if (giftModal && giftModal.style.display !== 'none') dismissGiftPopup();
+  }
+});
+
+async function handleNameChangeSubmit(e) {
+  e.preventDefault();
+  const input = document.getElementById('modalNameInput');
+  const newName = (input?.value || '').trim();
+  const msg = document.getElementById('modalSyncMsg');
+  const btn = document.getElementById('btnModalSave');
+  const btnLbl = document.getElementById('btnModalSaveLabel');
+
+  if (!newName) {
+    if (msg) {
+      msg.textContent = 'Veuillez saisir votre prénom ou pseudo.';
+      msg.style.color = 'var(--red)';
+      msg.style.display = 'block';
+    }
+    return;
+  }
+
+  const oldName = getContributorName();
+  if (btn) btn.disabled = true;
+  if (btnLbl) btnLbl.textContent = 'Synchronisation en cours...';
+
+  try {
+    const res = await syncContributorName(session, newName, oldName);
+    if (res.success) {
+      existingUserObj = { username: newName };
+      const greetEl = document.getElementById('heroGreet');
+      if (greetEl) greetEl.textContent = `Bonjour, ${newName}`;
+      const navUserEl = document.getElementById('navUserName');
+      if (navUserEl) navUserEl.textContent = newName;
+      
+      localStorage.removeItem('agrivoice_gift_popup_dismissed_at');
+      
+      closeNameModal();
+      showToast(`Bravo ${newName} ! Vos audios et votre classement sont synchronisés !`);
+      
+      await loadStats();
+    } else {
+      if (msg) {
+        msg.textContent = res.error || 'Erreur lors de la synchronisation.';
+        msg.style.color = 'var(--red)';
+        msg.style.display = 'block';
+      }
+    }
+  } catch (err) {
+    if (msg) {
+      msg.textContent = 'Erreur : ' + (err.message || 'vérifiez votre connexion');
+      msg.style.color = 'var(--red)';
+      msg.style.display = 'block';
+    }
+  } finally {
+    if (btn) btn.disabled = false;
+    if (btnLbl) btnLbl.textContent = 'Enregistrer & Mettre à jour';
+  }
+}
+
+function initGate() {
+  const savedName = localStorage.getItem("agrivoice_contributor_name");
+  if (savedName) {
+    existingUserObj = { username: savedName };
+    finishAuth(savedName);
+  } else {
+    // Générer un identifiant par défaut (ex: Contributeur_001)
+    const randomNum = Math.floor(100 + Math.random() * 900);
+    const defaultUsername = `Contributeur_${randomNum}`;
+    const nameInp = document.getElementById('nameInput');
+    const pinInp  = document.getElementById('pinInput');
+    if (nameInp) nameInp.value = defaultUsername;
+    if (pinInp) pinInp.value = "1234";
+    const subText = document.getElementById('gateSub');
+    if (subText) subText.innerHTML = `Un identifiant <strong>${defaultUsername}</strong> vous a été attribué. Vous pouvez le conserver tel quel ou le changer selon votre choix.`;
+  }
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initGate);
+} else {
+  initGate();
+}
+</script>
+
+</body>
+</html>
