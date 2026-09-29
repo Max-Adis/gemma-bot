@@ -153,25 +153,36 @@ def chercher_mot_cle(mot_cle, chemin="."):
 
 def demander_a_gemma(prompt):
     """
-    Interroge le modèle Gemma via l'API locale d'Ollama.
-    C'est beaucoup plus propre et rapide que d'utiliser subprocess sur le terminal.
+    Interroge le modèle Gemma via l'API locale d'Ollama avec un effet Streaming.
+    Permet de voir l'IA taper en temps réel à l'écran.
     """
     url = "http://localhost:11434/api/generate"
     data = {
         "model": "gemma:2b",
         "prompt": prompt,
-        "stream": False,
+        "stream": True,  # ACTIVATION DU STREAMING
         "options": {
-            "temperature": 0.0, # Température à 0 pour être très précis dans les commandes
-            "stop": ["Observation:"] # Stop word vital pour le ReAct !
+            "temperature": 0.0,
+            "stop": ["Observation:"]
         }
     }
     
     req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers={'Content-Type': 'application/json'})
+    reponse_complete = ""
     try:
         with urllib.request.urlopen(req) as response:
-            result = json.loads(response.read().decode('utf-8'))
-            return result.get('response', '')
+            print("\n[RÉPONSE DE L'IA]")
+            for ligne in response:
+                if ligne:
+                    chunk = json.loads(ligne.decode('utf-8'))
+                    texte = chunk.get("response", "")
+                    print(texte, end="", flush=True)
+                    reponse_complete += texte
+                    
+                    if chunk.get("done"):
+                        break
+            print("\n") # Retour à la ligne final
+            return reponse_complete
     except Exception as e:
         return f"Erreur de communication avec Ollama : {e}"
 
@@ -202,9 +213,8 @@ def lancer_agent(objectif):
             "Action: [nom_outil]([arguments])\n"
         )
         
-        print("Gemma réfléchit...")
+        print("Gemma réfléchit (streaming en cours)...")
         reponse_ia = demander_a_gemma(prompt_systeme).strip()
-        print(f"\n[RÉPONSE DE L'IA]\n{reponse_ia}\n")
         
         # S'il trouve la solution, on coupe la boucle.
         if "Action: FIN" in reponse_ia or "FIN" in reponse_ia:
