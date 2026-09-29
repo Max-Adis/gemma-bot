@@ -2,6 +2,8 @@ import os
 import subprocess
 import ast
 import re
+import json
+import urllib.request
 
 # ==============================================================================
 # 1. OUTILS DE HAUTE PRÉCISION ET SÉCURITÉ (L'Arsenal)
@@ -151,14 +153,30 @@ def chercher_mot_cle(mot_cle, chemin="."):
 
 def demander_a_gemma(prompt):
     """
-    Fonction relais (Placeholder) : 
-    Bientôt, elle appellera Ollama avec notre modèle.
+    Interroge le modèle Gemma via l'API locale d'Ollama.
+    C'est beaucoup plus propre et rapide que d'utiliser subprocess sur le terminal.
     """
-    # Ex: On passera ici la commande subprocess vers `ollama run`
-    pass
+    url = "http://localhost:11434/api/generate"
+    data = {
+        "model": "gemma:2b",
+        "prompt": prompt,
+        "stream": False,
+        "options": {
+            "temperature": 0.0, # Température à 0 pour être très précis dans les commandes
+            "stop": ["Observation:"] # Stop word vital pour le ReAct !
+        }
+    }
+    
+    req = urllib.request.Request(url, data=json.dumps(data).encode('utf-8'), headers={'Content-Type': 'application/json'})
+    try:
+        with urllib.request.urlopen(req) as response:
+            result = json.loads(response.read().decode('utf-8'))
+            return result.get('response', '')
+    except Exception as e:
+        return f"Erreur de communication avec Ollama : {e}"
 
 def lancer_agent(objectif):
-    """La fameuse boucle Reason + Act (ReAct)"""
+    """La fameuse boucle Reason + Act (ReAct) connectée à Gemma."""
     print(f"=== Lancement de l'Agent Gemma ===")
     print(f"Objectif : {objectif}\n")
     
@@ -166,35 +184,60 @@ def lancer_agent(objectif):
     
     max_iterations = 10
     for i in range(max_iterations):
-        print(f"--- Itération {i+1} ---")
+        print(f"\n--- Itération {i+1} ---")
         
         # 1. PENSÉE (Reasoning)
         prompt_systeme = (
             "Tu es un agent développeur. Analyse l'historique et décide de la prochaine action.\n"
-            "Format de réponse attendu :\n"
+            "Outils disponibles :\n"
+            "- extraire_squelette(chemin_fichier)\n"
+            "- lire_fichier_lignes(chemin_fichier, ligne_debut, ligne_fin)\n"
+            "- chercher_mot_cle(mot_cle)\n"
+            "- appliquer_patch(chemin_fichier, ancien_texte, nouveau_texte)\n"
+            "- FIN (quand l'objectif est atteint)\n\n"
+            "Historique actuel :\n"
+            f"{historique}\n\n"
+            "Format de réponse obligatoire :\n"
             "Pensée: [Ton raisonnement]\n"
             "Action: [nom_outil]([arguments])\n"
         )
         
-        # TODO: Relier à la vraie réponse du LLM
-        reponse_ia = "Pensée: Je dois analyser le projet.\nAction: extraire_squelette('agent.py')" 
+        print("Gemma réfléchit...")
+        reponse_ia = demander_a_gemma(prompt_systeme).strip()
+        print(f"\n[RÉPONSE DE L'IA]\n{reponse_ia}\n")
         
-        print(reponse_ia)
-        
-        # 2. ACTION (Extraction de l'outil)
-        # TODO: Parser la "reponse_ia" avec des Regex pour lancer appliquer_patch, etc.
-        
-        # 3. OBSERVATION (Feedback)
-        observation = "Observation: (Résultat fictif en attendant le parsing)"
-        historique += f"\n{reponse_ia}\n{observation}\n"
-        
-        # Condition d'arrêt
-        if "Action: FIN" in reponse_ia:
+        # S'il trouve la solution, on coupe la boucle.
+        if "Action: FIN" in reponse_ia or "FIN" in reponse_ia:
             print("Mission accomplie.")
             break
-        
-        # Pour le test, on coupe à l'itération 1
-        break
+            
+        if "Erreur de communication" in reponse_ia:
+            print("Arrêt de l'agent : Le serveur Ollama n'est pas accessible.")
+            break
+            
+        # 2. ACTION (Extraction de l'outil)
+        # On utilise une regex pour attraper `Action: fonction(...)`
+        match = re.search(r"Action:\s*([a-zA-Z_]+)\((.*)\)", reponse_ia)
+        if match:
+            outil = match.group(1)
+            arguments = match.group(2)
+            print(f"-> Déclenchement de l'outil : {outil} avec les arguments : {arguments}")
+            
+            # 3. OBSERVATION (Exécution de l'outil Python en vrai)
+            try:
+                # ATTENTION: Utilisation de eval pour le prototypage rapide.
+                # Dans un code de prod, on ferait un mapping sécurisé.
+                commande_python = f"{outil}({arguments})"
+                resultat_outil = eval(commande_python)
+            except Exception as e:
+                resultat_outil = f"Erreur d'exécution de l'outil : {e}"
+                
+            observation = f"Observation: {resultat_outil}"
+        else:
+            observation = "Observation: Erreur - Je n'ai pas pu parser ton action. Vérifie que tu as bien utilisé le format 'Action: nom_outil(args)'"
+            
+        print(observation)
+        historique += f"\n{reponse_ia}\n{observation}\n"
 
 if __name__ == "__main__":
     print("Initialisation du système...")
