@@ -1,102 +1,73 @@
-<p align="center">
-  <img src="docs/logo.png" width="220" alt="AgriVoice Logo" />
-</p>
+# 🤖 GemmAI : Agent Développeur Autonome Local & Offline
 
-<h1 align="center">🌾 AgriVoice</h1>
+> **Compétition Officielle Kaggle : "The Gemma 4 Developer Agent" ($100k Prize)**  
+> **Lead Technique :** Max_Adis  
+> **Modèle :** Google Gemma (2B / 7B) quantifié 4-bit • CPU-Only • 100% Hors-Ligne • Max 16 Go RAM
 
-<p align="center">
-  <strong>L'assistant agricole intelligent, 100% hors-ligne et en langues locales (Fon, Yorùbá, Français)</strong><br>
-  <em>Développé pour les producteurs agricoles du Bénin et d'Afrique de l'Ouest.</em>
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Kotlin-2.0.20-7F52FF?logo=kotlin&logoColor=white" alt="Kotlin" />
-  <img src="https://img.shields.io/badge/Jetpack_Compose-Material_3-4285F4?logo=android&logoColor=white" alt="Jetpack Compose" />
-  <img src="https://img.shields.io/badge/100%25_Offline-Zero_Cloud-22C55E" alt="Offline" />
-  <img src="https://img.shields.io/badge/Languages-Fon_%E2%80%A2_Yor%C3%B9b%C3%A1_%E2%80%A2_FR-F59E0B" alt="Languages" />
-</p>
+[![GitHub License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Offline First](https://img.shields.io/badge/offline-100%25-green.svg)](#)
+[![Kaggle 100k](https://img.shields.io/badge/Kaggle-The%20Gemma%204%20Agent-orange.svg)](#)
 
 ---
 
-## 🎯 Problème & Mission
+## ⚡ Installation Rapide en 1 Ligne (Multiplateforme)
 
-Dans les zones rurales d'Afrique subsaharienne, l'accès aux conseils agricoles fiables de l'**INRAB** (Institut National des Recherches Agricoles du Bénin) est freiné par :
-1. **L'analphabétisme et la barrière de la langue :** Beaucoup de producteurs ne lisent pas le français mais parlent couramment le **Fon** ou le **Yorùbá**.
-2. **L'absence de connexion Internet :** Réseau 3G/4G inexistant ou forfait trop cher dans les parcelles.
-3. **Le manque d'instantanéité :** Les maladies (taches foliaires, chenilles légionnaires) détruisent les récoltes avant l'arrivée d'un conseiller.
+### 🐧 Linux & 🍎 macOS
+Ouvrez un terminal et collez :
+```bash
+curl -fsSL https://raw.githubusercontent.com/Max-Adis/gemma-bot/main/install.sh | bash
+```
 
-**AgriVoice résout ce problème** avec une application mobile Android native **100% Hors-Ligne** et **Voice-First** (pilotée exclusivement par la voix).
-
----
-
-## 🌟 Fonctionnalités Clés
-
-* 🎙️ **Onboarding Vocal 100% Inclusif :** L'application parle dès la première seconde d'ouverture. Elle guide l'agriculteur par la voix et par les couleurs (*Vert = Fon, Jaune = Yorùbá, Bleu = Français*). **Zéro besoin de savoir lire !**
-* 💬 **Chat Vocal Intelligent :** L'agriculteur pose sa question vocalement en Fon ou Yorùbá et reçoit une réponse audio instantanée avec des puces visuelles claires.
-* 🌿 **Diagnostic Maladies & Ravageurs :** Recommandations certifiées INRAB pour le maïs, manioc, soja, coton (dosages bio, extraits de neem, bouillie bordelaise).
-* 💰 **Cours des Marchés Locaux :** Tarifs en temps réel à Dantokpa, Parakou, Bohicon (Maïs blanc, Soja, Gari en FCFA).
-* 🌦️ **Météo & Calendrier des Semis :** Alertes de pluie et fenêtres optimales de semis.
-* 📲 **Partage P2P sans Internet :** Distribution de téléphone à téléphone via **Xender / Bluetooth** dans les coopératives agricoles.
-
----
-
-## 📱 Aperçu de l'Interface
-
-<p align="center">
-  <img src="docs/chat_mockup.png" width="340" alt="Interface de Chat AgriVoice" />
-</p>
-
----
-
-## 🏗️ Architecture du Projet
-
-```text
-AGRI_VOICE/
-├── docs/
-│   ├── logo.png                  # Logo officiel AgriVoice
-│   └── chat_mockup.png           # Maquette de l'écran de chat
-├── app/
-│   ├── src/main/java/com/agrivoice/app/
-│   │   ├── MainActivity.kt       # Point d'entrée avec gestion de l'Onboarding Vocal
-│   │   ├── data/
-│   │   │   └── FonPhraseRepository.kt # Dataset de phrases et dictionnaire Fon
-│   │   ├── domain/
-│   │   │   └── AgriVoiceEngine.kt     # Cerveau de correspondance d'intentions hors-ligne
-│   │   ├── ui/
-│   │   │   ├── components/            # TopBar, ChatBubbles, InputBar, BottomNavBar, Chips
-│   │   │   ├── screens/               # VoiceOnboarding, Home, Chat, Resources, Profile
-│   │   │   └── theme/                 # Palette Material 3 aux couleurs d'AgriVoice & Bénin
-│   │   └── res/
-│   │       ├── drawable/              # logo_agrivoice.png, farmer_hero.jpg
-│   │       └── values/                # strings.xml, themes.xml
-└── gradle/
-    └── libs.versions.toml             # Version Catalog Android moderne
+### 🪟 Windows (PowerShell)
+Ouvrez PowerShell (ou Windows Terminal) et collez :
+```powershell
+irm https://raw.githubusercontent.com/Max-Adis/gemma-bot/main/install.ps1 | iex
 ```
 
 ---
 
-## 🚀 Lancement & Installation
+## 🚀 Démarrage
 
-1. **Cloner le dépôt :**
-   ```bash
-   git clone https://github.com/Max-Adis/AgriVoice.git
-   ```
-2. **Ouvrir dans Android Studio** (Koala / Ladybug ou supérieur).
-3. **Lancer la synchronisation Gradle** (`File -> Sync Project with Gradle Files`).
-4. **Exécuter sur votre appareil physique ou émulateur** (`Shift + F10` ou bouton **Run ▶**).
+Une fois installé, lancez simplement :
+```bash
+gemmai
+```
 
 ---
 
-## 👥 Équipe WinBanD
+## 🌟 Fonctionnalités Clés & Super-Pouvoirs
 
-Projet créé dans le cadre du **Challenge Cursor X Dev Club** par l'équipe **WinBanD** :
-* **Max**
-* **Byll**
-* **Ibrahim**
-* **Esperencia**
+* ⚡ **Architecture Directe (Style Gemini CLI) :** Inférence et streaming ANSI en temps réel, génération directe de fichiers sans boucles de pensée verbeuses.
+* 🔄 **Boucle d'Auto-Correction (Self-Healing) :** Capture automatique des erreurs de syntaxe ou des Tracebacks d'exécution et réparation du code en circuit fermé sans intervention humaine.
+* ⏪ **Rollback Instantané (`/undo`) :** Checkpoints Git automatiques avant chaque action. Annulation instantanée sans risque de perte de code.
+* 📊 **Diffs Couleur Visuels :** Rendu visuel immédiat dans le terminal des lignes modifiées (vert pour les ajouts, rouge pour les suppressions).
+* 🔒 **Triple Vérification d'Écriture :** Validation de présence physique sur disque, test de taille, comparaison du contenu relecture/écriture et compilation `python3 -m py_compile`.
+* 🧠 **Analyse Contextuelle de Code :** Détection automatique des fichiers du projet mentionnés et injection intelligente dans la réflexion.
+* 🛡️ **Filtrage d'Intention :** Distinction stricte entre conversation/salutations polies et véritables actions de développement système.
+* 🔀 **Bascule de Modèle à Chaud (`/model`) :** Changez de modèle Ollama en direct sans redémarrer le script.
 
 ---
 
-<p align="center">
-  <em>AgriVoice — Donnons une voix à chaque agriculteur. 🌱🇧🇯</em>
-</p>
+## ⌨️ Commandes Utiles dans l'Invite GemmAI
+
+| Commande | Action |
+| :--- | :--- |
+| `/files` ou `/ls` | Affiche l'arborescence des fichiers du projet |
+| `/undo` | Annule immédiatement les dernières modifications (Rollback Git) |
+| `/model <nom>` | Affiche ou change le modèle local actif |
+| `/clear` | Réinitialise l'historique de la conversation |
+| `/help` | Affiche l'aide interactive |
+| `quitter` | Quitte GemmAI |
+
+---
+
+## 📄 Documentation & Rapport Technique
+
+Consultez le rapport d'ingénierie complet et la feuille de route stratégique pour la compétition Kaggle :  
+👉 **[Rapport_Travaux_et_Objectifs_GemmAI.pdf](Rapport_Travaux_et_Objectifs_GemmAI.pdf)**
+
+---
+
+## 📜 Licence
+Projet open source développé par **Max_Adis** dans le cadre de la compétition Kaggle 2026.
