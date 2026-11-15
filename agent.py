@@ -8,9 +8,16 @@ import urllib.request
 import sys
 import shutil
 import difflib
+import argparse
+import atexit
 
-# Configuration du modèle actif
-MODELE_ACTIF = "gemma:2b"
+try:
+    import readline
+except ImportError:
+    readline = None
+
+# Configuration du modèle actif (configurable via GEMMAI_MODEL ou --model)
+MODELE_ACTIF = os.environ.get("GEMMAI_MODEL", "gemma:2b")
 
 # ==============================================================================
 # 0. INTERFACE CLI (Couleurs & Bannière)
@@ -591,19 +598,66 @@ def lancer_agent(objectif, historique_dialogue=None):
         else:
             print(f"\n{Couleurs.VERT}{Couleurs.BOLD}✅ Mission accomplie avec succès !{Couleurs.RESET}")
 
+def initialiser_readline():
+    """Active l'édition de ligne (flèches gauche/droite, historique haut/bas) sans caractères parasites."""
+    if readline is None:
+        return
+    histfile = os.path.join(os.path.expanduser("~"), ".gemmai_history")
+    try:
+        if os.path.exists(histfile):
+            readline.read_history_file(histfile)
+        readline.set_history_length(500)
+    except Exception:
+        pass
+    atexit.register(lambda: _sauvegarder_historique(histfile))
+
+def _sauvegarder_historique(histfile):
+    if readline is None:
+        return
+    try:
+        readline.write_history_file(histfile)
+    except Exception:
+        pass
+
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="GemmAI — Agent Développeur Autonome Local & Offline")
+    parser.add_argument("-p", "--prompt", type=str, default=None, help="Exécute un objectif unique en mode non-interactif puis quitte")
+    parser.add_argument("-m", "--model", type=str, default=None, help="Nom du modèle Ollama à utiliser (ex: gemma4:e2b, gemma:2b)")
+    parser.add_argument("--no-git", action="store_true", help="Désactive le checkpoint Git automatique avant action")
+    args = parser.parse_args()
+
+    if args.model:
+        MODELE_ACTIF = args.model.strip()
+
     REPERTOIRE_PROJET = os.getcwd()
+    os.chdir(REPERTOIRE_PROJET)
+
+    # Mode non-interactif (pour scripts, benchmarks, notebooks Kaggle)
+    if args.prompt is not None:
+        objectif_cli = args.prompt.strip()
+        if objectif_cli:
+            if not args.no_git:
+                git_checkpoint(f"Checkpoint GemmAI : {objectif_cli[:50]}")
+            lancer_agent(objectif_cli, [])
+        sys.exit(0)
+
+    initialiser_readline()
     afficher_banniere()
     
     print(f"{Couleurs.GRIS}  Répertoire de travail : {Couleurs.BLEU_VIF}{REPERTOIRE_PROJET}{Couleurs.RESET}")
+    print(f"{Couleurs.GRIS}  Modèle actif : {Couleurs.CYAN}{MODELE_ACTIF}{Couleurs.RESET}")
     print(f"{Couleurs.GRIS}  Commandes utiles : /clear, /files, /undo (annuler), /model (changer de modèle), 'quitter'{Couleurs.RESET}\n")
     
-    os.chdir(REPERTOIRE_PROJET)
     historique_session = []
+    # \001 et \002 indiquent à readline d'ignorer la largeur des codes ANSI (évite les bugs de flèches)
+    if readline is not None:
+        prompt_invite = f"\001{Couleurs.BLEU_VIF}{Couleurs.BOLD}\002GemmAI >\001{Couleurs.RESET}\002 "
+    else:
+        prompt_invite = f"{Couleurs.BLEU_VIF}{Couleurs.BOLD}GemmAI >{Couleurs.RESET} "
     
     while True:
         try:
-            objectif = input(f"{Couleurs.BLEU_VIF}{Couleurs.BOLD}GemmAI >{Couleurs.RESET} ").strip()
+            objectif = input(prompt_invite).strip()
         except (KeyboardInterrupt, EOFError):
             print(f"\n\n{Couleurs.GRIS}Au revoir !{Couleurs.RESET}\n")
             sys.exit(0)
@@ -645,6 +699,7 @@ if __name__ == "__main__":
             continue
         
         # Checkpoint Git automatique de sécurité avant chaque opération
-        git_checkpoint(f"Checkpoint GemmAI : {objectif[:50]}")
+        if not args.no_git:
+            git_checkpoint(f"Checkpoint GemmAI : {objectif[:50]}")
         lancer_agent(objectif, historique_session)
         print(f"\n{Couleurs.GRIS}{'─' * 60}{Couleurs.RESET}\n")
